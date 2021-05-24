@@ -10,7 +10,7 @@ pipeline {
             sleep 2
            snDevOpsArtifact(artifactsPayload:"""{"artifacts": [{"name": "devops_dev_artifact.jar","version": "1.${BUILD_NUMBER}","semanticVersion": "1.${BUILD_NUMBER}.0","repositoryName": "devops_dev_repo"}],"stageName": "build"}""")
               //sh 'mvn clean install'
-            //snDevOpsChange()
+            snDevOpsChange()
           }
       }
       stage("test") {
