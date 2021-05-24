@@ -6,29 +6,29 @@ pipeline {
   stages {
       stage("build") {
           steps {
-            echo 'build ...'
-           //snDevOpsStep()
-//snDevOpsArtifact(artifactsPayload:"""{"artifacts": [{"name": "devops_pipeline_demo.jar","version": "1.8","semanticVersion": "1.8.0","repositoryName": "devops_pipeline_demo"}],"stageName": "build"}""")
-   		sleep 5
-	//snDevOpsChange()
+            echo 'build.'
+            sleep 2
+           snDevOpsArtifact(artifactsPayload:"""{"artifacts": [{"name": "devops_dev_artifact.jar","version": "1.${BUILD_NUMBER}","semanticVersion": "1.${BUILD_NUMBER}.0","repositoryName": "devops_dev_repo"}],"stageName": "build"}""")
+              //sh 'mvn clean install'
+            //snDevOpsChange()
           }
       }
       stage("test") {
            steps {
-             echo 'test ..'
-	sh 'mvn clean test -Dpublish'
+             echo 'test.'
+             snDevOpsArtifact(artifactsPayload:"""{"artifacts": [{"name": "devops_test_artifact.jar","version": "1.${BUILD_NUMBER}","semanticVersion": "1.${BUILD_NUMBER}.0","repositoryName": "devops_test_repo"}],"stageName": "test"}""")
+             sleep 2
+                sh 'mvn clean test -Dtest="unittests.*" -Dpublish'
                 junit '**/target/surefire-reports/*.xml'
-              //snDevOpsStep()
-  		sleep 5
            }
        }
       stage("deploy") {
           steps {
-            echo 'Deploying.'
-       //snDevOpsStep()
-	//snDevOpsPackage(name: "devops_pipeline_demo", artifactsPayload: """{"artifacts": [{"name": "devops_pipeline_demo.jar","version": "1.8","semanticVersion": "1.8.0","repositoryName": "devops_pipeline_demo"}]}""")            
-		sleep 5
-		snDevOpsChange()
+            echo 'Deploying..'
+            //snDevOpsArtifact(artifactsPayload:"""{"artifacts": [{"name": "devops_pipeline_demo.jar","version": "1.3","semanticVersion": "1.3.0","repositoryName": "devops_pipeline_demo"}],"stageName": "deploy"}""")
+          	snDevOpsPackage(name: "devops_demo_package.${BUILD_NUMBER}", artifactsPayload: """{"artifacts": [{"name": "devops_dev_artifact.jar","version": "1.${BUILD_NUMBER}","semanticVersion": "1.${BUILD_NUMBER}.0","repositoryName": "devops_dev_repo"},{"name": "devops_test_artifact.jar","version": "1.${BUILD_NUMBER}","semanticVersion": "1.${BUILD_NUMBER}.0","repositoryName": "devops_test_repo"}]}""")            
+            sleep 5
+           snDevOpsChange()
           }
       }
   }
