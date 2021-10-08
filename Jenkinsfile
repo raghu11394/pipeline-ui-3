@@ -8,6 +8,8 @@ pipeline {
           steps {
             echo 'build..'
             sleep 2
+            sh 'mvn clean test -Dtest="unittests.*" -Dpublish'
+                junit '**/target/surefire-reports/*.xml'
            snDevOpsArtifact(artifactsPayload:"""{"artifacts": [{"name": "devops_dev_artifact.jar","version": "1.${BUILD_NUMBER}","semanticVersion": "1.${BUILD_NUMBER}.0","repositoryName": "devops_dev_repo"}],"stageName": "build"}""")
               //sh 'mvn clean install'
             snDevOpsChange()
