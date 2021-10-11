@@ -1,0 +1,131 @@
+def semanticVersion = "${env.BUILD_NUMBER}.0.0"
+def packageName = "devops_pipeline_demo_${env.BUILD_NUMBER}"
+def version = "${env.BUILD_NUMBER}.0"
+def artifactname = "sp-boot-app.jar"
+def repoName = "sp-boot-app-repo"
+
+pipeline {
+   agent any
+   tools {
+        maven 'Maven'
+    }
+    environment {
+	 SCANNER_HOME = tool 'sonarScanner'
+	}
+	
+    stages {
+		  stage('Build') {
+			    stages {
+				      stage("Build_Nested") {
+				        steps {
+				          echo"build 1.1 executed"
+                  snDevOpsArtifact(artifactsPayload: """{"artifacts": [{"name": "${artifactname}", "version": "1.${env.BUILD_NUMBER}","semanticVersion": "1.${env.BUILD_NUMBER}.0","repositoryName": "${repoName}"}],"branchName":"master"}""")
+				          snDevOpsPackage(name: "${packageName}-${env.BUILD_NUMBER}", artifactsPayload: """{"artifacts":[{"name": "${artifactname}", "version": "1.${env.BUILD_NUMBER}", "repositoryName": "${repoName}"}], "branchName":"master"}""")
+                  //snDevOpsChange()
+				          //sonarSummaries()
+				        } 
+				      }// end of build 1.1
+			      
+			    }// end of stages
+		    
+
+		    
+		  }// end of build1
+		
+			stage('Test') {
+					  parallel 
+					  {
+						    stage('parallelTest1') {
+						    	// Nested stage inside parallel
+							    stages {
+								      stage("nested_inside_parallel") {
+												      steps {
+												        echo'nested_inside_parallel'
+												        sh'mvn clean test -Dtest="unittests.*" -Dpublish'
+                                sleep(10)
+												        snDevOpsChange()
+												       
+												      }
+												      post{
+												        success{
+												          echo'Test1-success'
+												          junit"**/target/surefire-reports/*.xml"
+												        }
+												      } 
+                              stage("Deploy1") {
+												      steps {
+												        echo'CR1'
+												        snDevOpsChange()
+												       
+												      }
+								      }// end of nested_inside_parallel
+							      
+							    }// end of stages
+						    } // end of ptest1.1
+						    stage('parallelTest2') {
+									      steps {
+									       
+									        sh 'mvn clean test -Dtest="ppmtests.*" -Dpublish'
+									        echo'Test2 in progress'
+										      sleep(10)
+									        snDevOpsChange()
+				          					//sonarSummaries()
+									      }
+									       post{
+											success{
+												   echo'Test2-success'
+												   junit"**/target/surefire-reports/*.xml"
+												}
+										    }
+						    }// end of ptest1.2
+					    
+					  }// end of parallel
+				}// end of Test1
+				
+		stage('Artifacts'){
+		
+			stages {
+			
+			
+				stage('parallel_inside_nested'){
+				
+							parallel{
+				
+								stage('create_artifact'){
+									steps {
+			               				snDevOpsArtifact(artifactsPayload: """{"artifacts": [{"name": "${artifactname}", "version": "1.${env.BUILD_NUMBER}","semanticVersion": "1.${env.BUILD_NUMBER}.0","repositoryName": "${repoName}"}],"branchName":"master"}""")
+				                	}
+				                }
+			                
+						    	stage('create_package'){
+							    	steps{
+							    		snDevOpsPackage(name: "${packageName}-${env.BUILD_NUMBER}", artifactsPayload: """{"artifacts":[{"name": "${artifactname}", "version": "1.${env.BUILD_NUMBER}", "repositoryName": "${repoName}"}], "branchName":"master"}""")
+							    	}
+						        }
+							} // end of parallel stages
+						
+						}// end of artifacts stage
+				
+				}
+			
+			}
+		
+
+		
+			
+	} // end of stages
+} // end of pipeline
+
+def sonarSummaries() {
+
+   //withSonarQubeEnv('Sonar_Cloud') {
+       //sh '${SCANNER_HOME}/bin/sonar-scanner -Dproject.settings=${SCANNER_HOME}/conf/qa-sonar-scanner-cloud.properties'
+   
+	//}
+	
+    withSonarQubeEnv('sonarQube_local') {
+       	sh '${SCANNER_HOME}/bin/sonar-scanner -Dproject.settings=${SCANNER_HOME}/conf/qa-sonar-scanner.properties'
+   		// sh '${SCANNER_HOME}/bin/sonar-scanner -Dproject.settings=${SCANNER_HOME}/conf/sonar-scanner.properties'
+	}
+	
+} // end of def sonarsummaries
