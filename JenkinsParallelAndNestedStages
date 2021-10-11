@@ -42,9 +42,8 @@ pipeline {
 												      steps {
 												        echo'nested_inside_parallel'
 												        sh'mvn clean test -Dtest="unittests.*" -Dpublish'
-                                sleep(10)
+                                									sleep(10)
 												        snDevOpsChange()
-												       
 												      }
 												      post{
 												        success{
@@ -52,16 +51,16 @@ pipeline {
 												          junit"**/target/surefire-reports/*.xml"
 												        }
 												      } 
-                              stage("Deploy1") {
+												      }
+                              					              stage("Deploy1") 	      {
 												      steps {
 												        echo'CR1'
 												        snDevOpsChange()
-												       
 												      }
-								      }// end of nested_inside_parallel
+												      }
 							      
 							    }// end of stages
-						    } // end of ptest1.1
+						    } // end of parallelTest1
 						    stage('parallelTest2') {
 									      steps {
 									       
@@ -77,10 +76,10 @@ pipeline {
 												   junit"**/target/surefire-reports/*.xml"
 												}
 										    }
-						    }// end of ptest1.2
+						    }// end of parallelTest2
 					    
 					  }// end of parallel
-				}// end of Test1
+				}// end of Test
 				
 		stage('Artifacts'){
 		
