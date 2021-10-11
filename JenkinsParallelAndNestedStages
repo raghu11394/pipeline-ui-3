@@ -19,6 +19,7 @@ pipeline {
 				      stage("Build_Nested") {
 				        steps {
 				          echo"build 1.1 executed"
+					  sh'mvn clean'
                   snDevOpsArtifact(artifactsPayload: """{"artifacts": [{"name": "${artifactname}", "version": "1.${env.BUILD_NUMBER}","semanticVersion": "1.${env.BUILD_NUMBER}.0","repositoryName": "${repoName}"}],"branchName":"master"}""")
 				          snDevOpsPackage(name: "${packageName}-${env.BUILD_NUMBER}", artifactsPayload: """{"artifacts":[{"name": "${artifactname}", "version": "1.${env.BUILD_NUMBER}", "repositoryName": "${repoName}"}], "branchName":"master"}""")
                   //snDevOpsChange()
@@ -41,7 +42,7 @@ pipeline {
 								      stage("nested_inside_parallel") {
 												      steps {
 												        echo'nested_inside_parallel'
-												        sh'mvn clean test -Dtest="unittests.*" -Dpublish'
+												        sh'mvn test -Dtest="unittests.*" -Dpublish'
                                 									sleep(10)
 												        snDevOpsChange()
 												      }
@@ -64,7 +65,7 @@ pipeline {
 						    stage('parallelTest2') {
 									      steps {
 									       
-									        sh 'mvn clean test -Dtest="ppmtests.*" -Dpublish'
+									        sh 'mvn test -Dtest="ppmtests.*" -Dpublish'
 									        echo'Test2 in progress'
 										      sleep(10)
 									        snDevOpsChange()
